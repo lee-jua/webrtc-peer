@@ -1,5 +1,5 @@
 import React, {Component, createRef} from 'react';
-
+import io from 'socket.io-client'
 class PcClient extends Component {
     constructor(props) {
         super(props);
@@ -17,6 +17,12 @@ class PcClient extends Component {
         this.handleOffer = this.handleOffer.bind(this)
         this.handleICECandidateEvent = this.handleICECandidateEvent.bind(this)
         this.handleNewICECandidateMsg = this.handleNewICECandidateMsg.bind(this)
+        this.handleRemoteStreamAdded = this.handleRemoteStreamAdded.bind(this)
+        this.sendMessage = this.sendMessage.bind(this)
+        this.socket = io('http://localhost:3100/')
+    }
+    sendMessage(message){
+        this.socket.emit('message', message)
     }
     componentDidMount() {
         let {pc1} = this.state
@@ -26,20 +32,37 @@ class PcClient extends Component {
         })
             .then(stream=>{
                 this.callerVideo.current.srcObject= stream
-                pc1.onicecandidate = e => {
-                    this.handleICECandidateEvent(e)
-                }
-                stream.getTracks().forEach(track=>pc1.addTrack(track, stream))
+                stream
+                    .getTracks()
+                    .forEach(track => pc1.addTrack(track, stream))
+                pc1.onicecandidate = e => {this.handleICECandidateEvent(e)}
+                pc1.ontrack = e => this.handleRemoteStreamAdded(e)
                 this.setState({pc1 , callerStream : stream})
-            })
 
+            })
+        this.socket.on('letOffer',()=>{
+            this.offer()
+        })
+        this.socket.on('full', ()=>{
+            alert('room full')
+        })
+        this.socket.on('recOffer',(message)=>{
+            this.handleOffer(message)
+        })
+        this.socket.on('recAnswer', messsage=>{
+            this.state.pc2.setRemoteDescription(new RTCSessionDescription(messsage))
+        })
+    }
+    handleRemoteStreamAdded(event){
+        this.setState({calleeStream : event.stream})
+        this.calleeVideo.current.srcObject = this.state.calleeStream
     }
     offer(){
         let {pc1} = this.state
         pc1.createOffer().then(offer=>{
             pc1.setLocalDescription(offer)
-                .then(()=>{
-                    //서버로 offer 보내기
+                .then(desc=>{
+                    this.sendMessage(desc)
                 })
                 .catch(()=>{
                     console.log("error")
@@ -61,12 +84,13 @@ class PcClient extends Component {
             .then(()=>{
                 pc2.createAnswer().then(answer=>{
                     pc2.setLocalDescription(answer)
+                        .then(desc=>{
+                            this.sendMessage(desc)
+                            })
                     this.setState({pc2})
                 })
             })
-            .then(()=>{
-                //서버로 보내기
-            })
+
     }
     handleICECandidateEvent(e){
         if (e.candidate){
