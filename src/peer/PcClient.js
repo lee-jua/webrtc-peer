@@ -44,7 +44,7 @@ class PcClient extends Component {
                 .getTracks()
                 .forEach(track => pc1.addTrack(track, callerStream))
             pc1.onicecandidate = e => {this.handleICECandidateEvent(pc1,e)}
-            pc1.ontrack = e => this.handleRemoteStreamAdded(e,pc1)
+            pc1.ontrack = e => this.handleRemoteStreamAdded(e,'pc1')
             this.setState({pc1 , callerStream : callerStream})
             this.offer()
         })
@@ -66,10 +66,11 @@ class PcClient extends Component {
     }
     handleRemoteStreamAdded(event, pc){
         console.log(`remote stream added ${pc}`)
-        let {pc1, pc2} = this.state
-        if (pc===pc1){
+        if (pc==='pc1'){
+            console.log(`remote stream added on pc1`)
             this.callerVideo.current.srcObject = event.stream
-        }else if (pc===pc2){
+        }else if (pc==='pc2'){
+            console.log(`remote stream added on pc2`)
             this.calleeVideo.current.srcObject = event.stream
 
         }
@@ -100,7 +101,7 @@ class PcClient extends Component {
         let {pc2} = this.state
         pc2 =  new RTCPeerConnection(this.state.pcConfig)
         pc2.onicecandidate = e => this.handleICECandidateEvent(pc2,e)
-        pc2.ontrack = e=> this.handleRemoteStreamAdded(e,pc2)
+        pc2.ontrack = e=> this.handleRemoteStreamAdded(e,'pc2')
         const desc = new RTCSessionDescription(message.sdp)
         pc2.setRemoteDescription(desc)
             .then(()=>{
