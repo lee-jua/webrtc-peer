@@ -138,6 +138,7 @@ class PcClient extends Component {
         }
 
     handleNewICECandidateMsg(message){
+        console.log(`addicecandidate ${message.target}`)
         const {pc1, pc2} = this.state
         if (message.target==="callee"){
             pc2.addIceCandidate(new RTCIceCandidate(message.candidate))
