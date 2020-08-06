@@ -54,8 +54,11 @@ class PcClient extends Component {
         this.socket.on('recOffer',(message)=>{
             this.handleOffer(message)
         })
-        this.socket.on('recAnswer', messsage=>{
-            this.state.pc2.setRemoteDescription(new RTCSessionDescription(messsage))
+        this.socket.on('recAnswer', messsage=>{//일단 여기까지 왔음
+            let {pc2} = this.state
+            pc2 =  new RTCPeerConnection(this.state.pcConfig)
+            pc2.setRemoteDescription(new RTCSessionDescription(messsage))
+            this.setState({pc2})
         })
     }
     handleRemoteStreamAdded(event){
@@ -80,6 +83,7 @@ class PcClient extends Component {
                 })
     }
     handleOffer(message){
+        console.log("receive offer")
         let {pc2} = this.state
         pc2 =  new RTCPeerConnection(this.state.pcConfig)
         const desc = new RTCSessionDescription(message.sdp)
