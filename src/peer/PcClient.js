@@ -44,7 +44,7 @@ class PcClient extends Component {
                 .getTracks()
                 .forEach(track => pc1.addTrack(track, callerStream))
             pc1.onicecandidate = e => {this.handleICECandidateEvent(pc1,e)}
-            pc1.ontrack = e => this.handleRemoteStreamAdded(pc1,e)
+            pc1.ontrack = e => this.handleRemoteStreamAdded(e,pc1)
             this.setState({pc1 , callerStream : callerStream})
             this.offer()
         })
@@ -56,20 +56,22 @@ class PcClient extends Component {
         })
         this.socket.on('recAnswer', messsage=>{//일단 여기까지 왔음
             let {pc1} = this.state
-            pc1.setRemoteDescription(new RTCSessionDescription(messsage.sdp))
+            pc1.setRemoteDescription(new RTCSessionDescription(messsage.sdp)).then(r =>
+            console.log(`pc1 remoteDescription setting success`))
             this.setState({pc1})
         })
         this.socket.on('recCandidate', message=>{
            this.handleNewICECandidateMsg(message)
         })
     }
-    handleRemoteStreamAdded(pc,event){
+    handleRemoteStreamAdded(event, pc){
+        console.log(`remote stream added ${pc}`)
         let {pc1, pc2} = this.state
         if (pc===pc1){
             this.callerVideo.current.srcObject = event.stream
         }else if (pc===pc2){
             this.calleeVideo.current.srcObject = event.stream
-          
+
         }
     }
 
@@ -77,7 +79,10 @@ class PcClient extends Component {
         console.log("offer")
         let {pc1} = this.state
         pc1.createOffer().then(offer=>{
-            pc1.setLocalDescription(offer)})
+            pc1.setLocalDescription(offer)
+                .then(()=>{
+                    console.log('pc1 set remote description success')
+                })})
                 .then(()=>{//send offer message
                     this.sendMessage({
                         name : "T01123",
@@ -95,7 +100,7 @@ class PcClient extends Component {
         let {pc2} = this.state
         pc2 =  new RTCPeerConnection(this.state.pcConfig)
         pc2.onicecandidate = e => this.handleICECandidateEvent(pc2,e)
-        pc2.ontrack = e=> this.handleRemoteStreamAdded(pc2,e)
+        pc2.ontrack = e=> this.handleRemoteStreamAdded(e,pc2)
         const desc = new RTCSessionDescription(message.sdp)
         pc2.setRemoteDescription(desc)
             .then(()=>{
@@ -107,7 +112,7 @@ class PcClient extends Component {
         })
             .then(()=>{
                 pc2.createAnswer().then(answer=>{
-                    pc2.setLocalDescription(answer)})
+                    pc2.setLocalDescription(answer).then(r => console.log('pc2 set remote description success'))})
                         .then(()=>{//send answer message
                             this.sendMessage({
                                 name : "S01123",
