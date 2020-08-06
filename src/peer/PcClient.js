@@ -64,16 +64,13 @@ class PcClient extends Component {
            this.handleNewICECandidateMsg(message)
         })
     }
-    handleRemoteStreamAdded(event, pc){
-        console.log(`remote stream added ${pc}`)
-        if (pc==='pc1'){
-            console.log(`remote stream added on pc1`)
-            this.callerVideo.current.srcObject = event.stream
-        }else if (pc==='pc2'){
-            console.log(`remote stream added on pc2`)
+    handleRemoteStreamAdded(event){
+        console.log('remote stream added on track')
+        if (event.stream){
             this.calleeVideo.current.srcObject = event.stream
-
         }
+
+
     }
 
     offer(){
@@ -105,12 +102,11 @@ class PcClient extends Component {
         const desc = new RTCSessionDescription(message.sdp)
         pc2.setRemoteDescription(desc)
             .then(()=>{
-                navigator.mediaDevices.getUserMedia({video : true})
-                .then(stream=>{
-                    stream.getTracks().forEach(track=> pc2.addTrack(track, stream))
-                    this.setState({calleeStream : stream})
+                const {callerStream} = this.state
+                callerStream
+                    .getTracks().forEach(track=> pc2.addTrack(track, callerStream))
+                    this.setState({calleeStream : callerStream})
                 })//여기부터 answer
-        })
             .then(()=>{
                 pc2.createAnswer().then(answer=>{
                     pc2.setLocalDescription(answer).then(r => console.log('pc2 set remote description success'))})
@@ -159,7 +155,7 @@ class PcClient extends Component {
         return (
             <>
                 <video ref={this.callerVideo} autoPlay></video>
-                <video ref={this.calleeVideo} autoPlay></video>
+                <video ref={this.calleeVideo} autoPlay controls></video>
             </>
         );
     }
