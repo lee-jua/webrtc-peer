@@ -19,7 +19,7 @@ class PcClient extends Component {
         this.handleNewICECandidateMsg = this.handleNewICECandidateMsg.bind(this)
         this.handleRemoteStreamAdded = this.handleRemoteStreamAdded.bind(this)
         this.sendMessage = this.sendMessage.bind(this)
-        this.socket = io('http://localhost:3100/')
+        this.socket = io('https://secret-dawn-11778.herokuapp.com/')
     }
     sendMessage(message){
         this.socket.emit('message', message)
