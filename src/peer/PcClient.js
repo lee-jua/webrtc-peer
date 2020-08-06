@@ -15,11 +15,10 @@ class PcClient extends Component {
         this.calleeVideo = createRef()
         this.offer = this.offer.bind(this)
         this.handleOffer = this.handleOffer.bind(this)
-        this.handleICECandidateEvent = this.handleICECandidateEvent.bind(this)
-        this.handleNewICECandidateMsg = this.handleNewICECandidateMsg.bind(this)
+        this.handleICECandidateEvent= this.handleICECandidateEvent.bind(this)
         this.handleRemoteStreamAdded = this.handleRemoteStreamAdded.bind(this)
         this.sendMessage = this.sendMessage.bind(this)
-        this.handleICECandidateEvent()
+        this.handleNewICECandidateMsg = this.handleNewICECandidateMsg.bind(this)
         this.socket = io('https://secret-dawn-11778.herokuapp.com/')
     }
     sendMessage(message){
@@ -45,7 +44,7 @@ class PcClient extends Component {
                 .getTracks()
                 .forEach(track => pc1.addTrack(track, callerStream))
             pc1.onicecandidate = e => {this.handleICECandidateEvent(pc1,e)}
-            pc1.ontrack = e => this.handleRemoteStreamAdded(e)
+            pc1.ontrack = e => this.handleRemoteStreamAdded(pc1,e)
             this.setState({pc1 , callerStream : callerStream})
             this.offer()
         })
@@ -60,15 +59,21 @@ class PcClient extends Component {
             pc1.setRemoteDescription(new RTCSessionDescription(messsage.sdp))
             this.setState({pc1})
         })
+        this.socket.on('recCandidate', message=>{
+
+        })
     }
-    handleRemoteStreamAdded(event){
-        this.setState({calleeStream : event.stream})
-        this.calleeVideo.current.srcObject = this.state.calleeStream
+    handleRemoteStreamAdded(pc,event){
+        let {pc1, pc2} = this.state
+        if (pc===pc1){
+            this.setState({callerStream : event.stream})
+            this.callerVideo.current.srcObject = this.state.callerVideo
+        }else if (pc===pc2){
+            this.setState({calleeStream : event.stream})
+            this.calleeVideo.current.srcObject = this.state.calleeStream
+        }
     }
-    handleRemoteStreamAddedForCallee(event){
-        this.setState({callerStream : event.stream})
-        this.callerVideo.current.srcObject = this.state.callerStream
-    }
+
     offer(){
         console.log("offer")
         let {pc1} = this.state
@@ -90,8 +95,8 @@ class PcClient extends Component {
         console.log("receive offer")
         let {pc2} = this.state
         pc2 =  new RTCPeerConnection(this.state.pcConfig)
-        pc2.onicecandidate = e => this.handleICECandidateEventForCallee(pc2,e)
-        pc2.ontrack = e=> this.handleRemoteStreamAddedForCallee(e)
+        pc2.onicecandidate = e => this.handleICECandidateEvent(pc2,e)
+        pc2.ontrack = e=> this.handleRemoteStreamAdded(pc2,e)
         const desc = new RTCSessionDescription(message.sdp)
         pc2.setRemoteDescription(desc)
             .then(()=>{
@@ -115,21 +120,29 @@ class PcClient extends Component {
                     this.setState({pc2})
             })
     }
-    handleICECandidateEvent(e){
-        console.log("handleICECandidate")
-        if (e.candidate){
+    handleICECandidateEvent(pc,e){
+        let {pc1, pc2} = this.state
+        if (e.candidate && pc===pc1){
             this.sendMessage({
                 type : "candidate",
-                target : null,
+                target : "callee",
+                candidate : e.candidate
+            })
+        }else if (e.candidate && pc===pc2){
+            this.sendMessage({
+                type : "candidate",
+                target : "caller",
                 candidate : e.candidate
             })
         }
-    }
-    handleNewICECandidateMsg(pc,message){ //callee 쪽 문단
-        const candidate = new RTCIceCandidate(message.candidate)
-        let { pc1, pc2 } = this.state;
-        let otherPc = pc === pc1 ? pc2 : pc1;
-        otherPc.addIceCandidate(message.candidate)
+        }
+
+    handleNewICECandidateMsg(message){
+        const {pc1, pc2} = this.state
+        if (message.target==="callee"){
+            pc2.addIceCandidate(new RTCIceCandidate(message.candidate))
+        }else if (message.target==="caller")
+        pc1.addIceCandidate(new RTCIceCandidate(message.candidate))
     }
 
     render() {
