@@ -61,14 +61,18 @@ class PcClient extends Component {
     offer(){
         let {pc1} = this.state
         pc1.createOffer().then(offer=>{
-            pc1.setLocalDescription(offer)
-                .then(desc=>{
-                    this.sendMessage(desc)
+            pc1.setLocalDescription(offer)})
+                .then(()=>{//send offer message
+                    this.sendMessage({
+                        name : "T01123",
+                        target : "S01123",
+                        type : "offer",
+                        sdp : pc1.localDescription
+                    })
                 })
                 .catch(()=>{
                     console.log("error")
                 })
-        })
     }
     handleOffer(message){
         let {pc2} = this.state
@@ -84,18 +88,25 @@ class PcClient extends Component {
         })
             .then(()=>{
                 pc2.createAnswer().then(answer=>{
-                    pc2.setLocalDescription(answer)
-                        .then(desc=>{
-                            this.sendMessage(desc)
+                    pc2.setLocalDescription(answer)})
+                        .then(()=>{//send answer message
+                            this.sendMessage({
+                                name : "S01123",
+                                target : "T01123",
+                                type : "answer",
+                                sdp : pc2.localDescription
+                            })
                             })
                     this.setState({pc2})
-                })
             })
-
     }
     handleICECandidateEvent(e){
         if (e.candidate){
-            //icecandidate를 서버로 보낸다.
+            this.sendMessage({
+                type : "candidate",
+                target : null,
+                candidate : e.candidate
+            })
         }
     }
     handleNewICECandidateMsg(message){ //callee 쪽 문단
