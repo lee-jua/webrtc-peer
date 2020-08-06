@@ -22,6 +22,7 @@ class PcClient extends Component {
         this.socket = io('https://secret-dawn-11778.herokuapp.com/')
     }
     sendMessage(message){
+        console.log(`send Message type ${message.type}`)
         this.socket.emit('message', message)
     }
     componentDidMount() {
@@ -62,6 +63,7 @@ class PcClient extends Component {
         this.calleeVideo.current.srcObject = this.state.calleeStream
     }
     offer(){
+        console.log("offer")
         let {pc1} = this.state
         pc1.createOffer().then(offer=>{
             pc1.setLocalDescription(offer)})
