@@ -56,7 +56,7 @@ class PcClient extends Component {
         })
         this.socket.on('recAnswer', messsage=>{//일단 여기까지 왔음
             let {pc1} = this.state
-            pc1.setRemoteDescription(new RTCSessionDescription(messsage))
+            pc1.setRemoteDescription(new RTCSessionDescription(messsage.sdp))
             this.setState({pc1})
         })
     }
