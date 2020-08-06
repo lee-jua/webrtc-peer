@@ -66,11 +66,10 @@ class PcClient extends Component {
     handleRemoteStreamAdded(pc,event){
         let {pc1, pc2} = this.state
         if (pc===pc1){
-            this.setState({callerStream : event.stream})
-            this.callerVideo.current.srcObject = this.state.callerVideo
+            this.callerVideo.current.srcObject = event.stream
         }else if (pc===pc2){
-            this.setState({calleeStream : event.stream})
-            this.calleeVideo.current.srcObject = this.state.calleeStream
+            this.calleeVideo.current.srcObject = event.stream
+          
         }
     }
 
