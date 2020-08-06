@@ -40,6 +40,7 @@ class PcClient extends Component {
                 this.setState({pc1 , callerStream : stream})
 
             })
+        this.socket.emit('connect',"Kor111")
         this.socket.on('letOffer',()=>{
             console.log('receive start offer message from server')
             this.offer()
