@@ -60,7 +60,7 @@ class PcClient extends Component {
             this.setState({pc1})
         })
         this.socket.on('recCandidate', message=>{
-
+           this.handleNewICECandidateMsg(message)
         })
     }
     handleRemoteStreamAdded(pc,event){
