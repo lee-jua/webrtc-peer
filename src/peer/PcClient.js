@@ -19,6 +19,7 @@ class PcClient extends Component {
         this.handleNewICECandidateMsg = this.handleNewICECandidateMsg.bind(this)
         this.handleRemoteStreamAdded = this.handleRemoteStreamAdded.bind(this)
         this.sendMessage = this.sendMessage.bind(this)
+        this.handleICECandidateEvent()
         this.socket = io('https://secret-dawn-11778.herokuapp.com/')
     }
     sendMessage(message){
@@ -43,7 +44,7 @@ class PcClient extends Component {
                 callerStream
                 .getTracks()
                 .forEach(track => pc1.addTrack(track, callerStream))
-            pc1.onicecandidate = e => {this.handleICECandidateEvent(e)}
+            pc1.onicecandidate = e => {this.handleICECandidateEvent(pc1,e)}
             pc1.ontrack = e => this.handleRemoteStreamAdded(e)
             this.setState({pc1 , callerStream : callerStream})
             this.offer()
@@ -89,7 +90,7 @@ class PcClient extends Component {
         console.log("receive offer")
         let {pc2} = this.state
         pc2 =  new RTCPeerConnection(this.state.pcConfig)
-        pc2.onicecandidate = e => this.handleICECandidateEvent(e)
+        pc2.onicecandidate = e => this.handleICECandidateEventForCallee(pc2,e)
         pc2.ontrack = e=> this.handleRemoteStreamAddedForCallee(e)
         const desc = new RTCSessionDescription(message.sdp)
         pc2.setRemoteDescription(desc)
@@ -124,11 +125,13 @@ class PcClient extends Component {
             })
         }
     }
-    handleNewICECandidateMsg(message){ //callee 쪽 문단
+    handleNewICECandidateMsg(pc,message){ //callee 쪽 문단
         const candidate = new RTCIceCandidate(message.candidate)
-        let {pc2} = this.state
-        pc2.addIceCandidate(candidate)
+        let { pc1, pc2 } = this.state;
+        let otherPc = pc === pc1 ? pc2 : pc1;
+        otherPc.addIceCandidate(message.candidate)
     }
+
     render() {
         return (
             <>
