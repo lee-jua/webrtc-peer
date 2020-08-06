@@ -25,24 +25,25 @@ class PcClient extends Component {
         this.socket.emit('message', message)
     }
     componentDidMount() {
+        this.socket.emit('joinRoom', "room")
         let {pc1} = this.state
-        pc1 = new RTCPeerConnection(this.state.pcConfig)
         navigator.mediaDevices.getUserMedia({
             video : true
         })
             .then(stream=>{
                 this.callerVideo.current.srcObject= stream
-                stream
-                    .getTracks()
-                    .forEach(track => pc1.addTrack(track, stream))
-                pc1.onicecandidate = e => {this.handleICECandidateEvent(e)}
-                pc1.ontrack = e => this.handleRemoteStreamAdded(e)
-                this.setState({pc1 , callerStream : stream})
-
             })
-        this.socket.emit('connect',"Kor111")
+
         this.socket.on('letOffer',()=>{
             console.log('receive start offer message from server')
+            pc1 = new RTCPeerConnection(this.state.pcConfig)
+            const {callerStream} = this.state
+                callerStream
+                .getTracks()
+                .forEach(track => pc1.addTrack(track, callerStream))
+            pc1.onicecandidate = e => {this.handleICECandidateEvent(e)}
+            pc1.ontrack = e => this.handleRemoteStreamAdded(e)
+            this.setState({pc1 , callerStream : callerStream})
             this.offer()
         })
         this.socket.on('full', ()=>{
