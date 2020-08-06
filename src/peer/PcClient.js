@@ -64,6 +64,10 @@ class PcClient extends Component {
         this.setState({calleeStream : event.stream})
         this.calleeVideo.current.srcObject = this.state.calleeStream
     }
+    handleRemoteStreamAddedForCallee(event){
+        this.setState({callerStream : event.stream})
+        this.callerVideo.current.srcObject = this.state.callerStream
+    }
     offer(){
         console.log("offer")
         let {pc1} = this.state
@@ -85,6 +89,8 @@ class PcClient extends Component {
         console.log("receive offer")
         let {pc2} = this.state
         pc2 =  new RTCPeerConnection(this.state.pcConfig)
+        pc2.onicecandidate = e => this.handleICECandidateEvent(e)
+        pc2.ontrack = e=> this.handleRemoteStreamAddedForCallee(e)
         const desc = new RTCSessionDescription(message.sdp)
         pc2.setRemoteDescription(desc)
             .then(()=>{
