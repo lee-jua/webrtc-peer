@@ -32,6 +32,7 @@ class PcClient extends Component {
         })
             .then(stream=>{
                 this.callerVideo.current.srcObject= stream
+                this.setState({callerStream : stream})
             })
 
         this.socket.on('letOffer',()=>{
