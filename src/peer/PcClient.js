@@ -141,9 +141,13 @@ class PcClient extends Component {
         console.log(`addicecandidate ${message.target}`)
         const {pc1, pc2} = this.state
         if (message.target==="callee"){
-            pc2.addIceCandidate(new RTCIceCandidate(message.candidate))
+            pc2.addIceCandidate(new RTCIceCandidate(message.candidate)).then(r=>
+                console.log('success icecandidate added'))
+                .catch(e=>console.log(e))
         }else if (message.target==="caller")
-        pc1.addIceCandidate(new RTCIceCandidate(message.candidate))
+        pc1.addIceCandidate(new RTCIceCandidate(message.candidate)).then(r =>
+        console.log('success icecandidate added'))
+            .catch(e=>console.log(e))
     }
 
     render() {
