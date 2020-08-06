@@ -41,6 +41,7 @@ class PcClient extends Component {
 
             })
         this.socket.on('letOffer',()=>{
+            console.log('receive start offer message from server')
             this.offer()
         })
         this.socket.on('full', ()=>{

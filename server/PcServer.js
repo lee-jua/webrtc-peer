@@ -13,8 +13,10 @@ io.on('connection', socket=> {
         const numClient = clientsInRoom? Object.keys(clientsInRoom.sockets).length : 0;
         if (numClient ===0){
             socket.join(room)
+            console.log(`first client join socketid ${socket.id}`)
         }else if (numClient ===1){
             socket.join(room)
+            console.log(`second client join socketid ${socket.id}`)
             socket.in(room).emit('letOffer')
         }else{
             socket.in(room).emit('full')
