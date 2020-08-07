@@ -4,15 +4,15 @@ class PcClient extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            callerStream : null,
-            calleeStream : null,
+            localStream : null,
+            remoteStream : null,
             pc1 : null,
             pc2 : null,
             pcConfig : {'iceServers' : [{urls: 'stun:stun.l.google.com:19302'},
                     {urls:  'turn:numb.viagenie.ca', credential : "muazkh", username : "webrtc@live.com"}]},
         }
-        this.callerVideo = createRef()
-        this.calleeVideo = createRef()
+        this.localVideo = createRef()
+        this.remoteVideo = createRef()
         this.offer = this.offer.bind(this)
         this.handleOffer = this.handleOffer.bind(this)
         this.handleICECandidateEvent= this.handleICECandidateEvent.bind(this)
@@ -32,20 +32,20 @@ class PcClient extends Component {
             video : true
         })
             .then(stream=>{
-                this.callerVideo.current.srcObject= stream
-                this.setState({callerStream : stream})
+                this.localVideo.current.srcObject= stream
+                this.setState({localStream : stream})
             })
 
         this.socket.on('letOffer',()=>{
             console.log('receive start offer message from server')
             pc1 = new RTCPeerConnection(this.state.pcConfig)
-            const {callerStream} = this.state
-                callerStream
+            const {localStream} = this.state
+            localStream
                 .getTracks()
-                .forEach(track => pc1.addTrack(track, callerStream))
+                .forEach(track => pc1.addTrack(track, localStream))
             pc1.onicecandidate = e => {this.handleICECandidateEvent(pc1,e)}
             pc1.ontrack = e => this.handleRemoteStreamAdded(e,'pc1')
-            this.setState({pc1 , callerStream : callerStream})
+            this.setState({pc1 , localStream})
             this.offer()
         })
         this.socket.on('full', ()=>{
@@ -67,7 +67,7 @@ class PcClient extends Component {
     handleRemoteStreamAdded(event){
         console.log('remote stream added on track')
         if (event.streams[0]){
-            this.calleeVideo.current.srcObject =event.streams[0]
+            this.remoteVideo.current.srcObject =event.streams[0]
         }
 
 
@@ -154,8 +154,8 @@ class PcClient extends Component {
     render() {
         return (
             <>
-                <video ref={this.callerVideo} autoPlay></video>
-                <video ref={this.calleeVideo} autoPlay controls></video>
+                <video ref={this.localVideo} autoPlay></video>
+                <video ref={this.remoteVideo} autoPlay controls></video>
             </>
         );
     }
