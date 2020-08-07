@@ -66,8 +66,8 @@ class PcClient extends Component {
     }
     handleRemoteStreamAdded(event){
         console.log('remote stream added on track')
-        if (event.stream){
-            this.calleeVideo.current.srcObject = event.stream
+        if (event.streams[0]){
+            this.calleeVideo.current.srcObject =event.streams[0]
         }
 
 
