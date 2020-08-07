@@ -97,6 +97,7 @@ class PcClient extends Component {
         console.log("receive offer")
         let {pc2} = this.state
         pc2 =  new RTCPeerConnection(this.state.pcConfig)
+        this.setState({pc2})
         pc2.onicecandidate = e => this.handleICECandidateEvent(pc2,e)
         pc2.ontrack = e=> this.handleRemoteStreamAdded(e,'pc2')
         const desc = new RTCSessionDescription(message.sdp)
