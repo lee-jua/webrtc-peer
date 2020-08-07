@@ -103,10 +103,10 @@ class PcClient extends Component {
         const desc = new RTCSessionDescription(message.sdp)
         pc2.setRemoteDescription(desc)
             .then(()=>{
-                const {callerStream} = this.state
-                callerStream
-                    .getTracks().forEach(track=> pc2.addTrack(track, callerStream))
-                    this.setState({calleeStream : callerStream})
+                const {remoteStream} = this.state
+                remoteStream
+                    .getTracks().forEach(track=> pc2.addTrack(track, remoteStream))
+                    this.setState({calleeStream : remoteStream})
                 })//여기부터 answer
             .then(()=>{
                 pc2.createAnswer().then(answer=>{
