@@ -69,8 +69,6 @@ class PcClient extends Component {
         if (event.streams[0]){
             this.remoteVideo.current.srcObject =event.streams[0]
         }
-
-
     }
 
     offer(){
@@ -93,20 +91,24 @@ class PcClient extends Component {
                     console.log("error")
                 })
     }
+
     handleOffer(message){
         console.log("receive offer")
         let {pc2} = this.state
+        navigator.mediaDevices.getUserMedia({
+            video: true
+        }).then(stream =>{
+                stream.getTracks().forEach(track=> pc2.addTrack(track, stream))
+                this.setState({remoteStream : stream})
+            }
+        )
         pc2 =  new RTCPeerConnection(this.state.pcConfig)
         this.setState({pc2})
         pc2.onicecandidate = e => this.handleICECandidateEvent(pc2,e)
         pc2.ontrack = e=> this.handleRemoteStreamAdded(e,'pc2')
-        const desc = new RTCSessionDescription(message.sdp)
-        pc2.setRemoteDescription(desc)
+        pc2.setRemoteDescription(new RTCSessionDescription(message.sdp))
             .then(()=>{
-                const {remoteStream} = this.state
-                remoteStream
-                    .getTracks().forEach(track=> pc2.addTrack(track, remoteStream))
-                    this.setState({calleeStream : remoteStream})
+                console.log('set remote description success ')
                 })//여기부터 answer
             .then(()=>{
                 pc2.createAnswer().then(answer=>{
